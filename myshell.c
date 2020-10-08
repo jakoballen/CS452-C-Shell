@@ -13,8 +13,17 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <signal.h>
+#include <string.h>
 
 extern char **getaline();
+
+int ampersand(char **args);
+int internal_command(char **args);
+int do_command(char **args, int block, int input, char *input_filename, int output, char *output_filename, int append, char *append_filename);
+int redirect_input(char **args, char **input_filename);			   
+int append_output(char **args, char **append_filename);
+int redirect_output(char **args, char **output_filename);
+
 
 /*
  * Handle exit signals from child processes
@@ -29,7 +38,7 @@ void sig_handler(int signal) {
 /*
  * The main shell function
  */
-main() {
+int main() {
   int i;
   char **args;
   int result;
@@ -40,9 +49,12 @@ main() {
   char *output_filename;
   char *input_filename;
   char *append_filename;
-
-  // Set up the signal handler
-  sigset(SIGCHLD, sig_handler);
+  
+	// Set up the signal handler
+  signal(SIGQUIT, SIG_IGN);
+  signal(SIGTTIN, SIG_IGN);
+  signal(SIGTTOU, SIG_IGN);
+	signal(SIGCHLD, sig_handler);
 
   // Loop forever
   while(1) {
@@ -77,7 +89,7 @@ main() {
       break;
     }
 
-    // Check for appended output
+    // Check for append output
     append = append_output(args, &append_filename);
 
     switch(append) {
@@ -171,8 +183,12 @@ int do_command(char **args, int block,
     return;
   }
 
-  if(child_id == 0) {
+  if(child_id == 0) {	// if is child
+	setpgid(child_id, child_id);	//remove child from parent process group
 
+    // Set signals in the child process
+    signal(SIGTTOU, SIG_DFL);
+    
     // Set up redirection in the child process
     if(input)
       freopen(input_filename, "r", stdin);
@@ -191,8 +207,8 @@ int do_command(char **args, int block,
 
   // Wait for the child process to complete, if necessary
   if(block) {
-    printf("Waiting for child, pid = %d\n", child_id);
-    result = waitpid(child_id, &status, 0);
+	printf("Waiting for child, pid = %d\n", child_id);
+	result = waitpid(child_id, &status, 0);
   }
 }
 
