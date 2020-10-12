@@ -19,7 +19,10 @@ extern char **getaline();
 
 int ampersand(char **args);
 int internal_command(char **args);
-int do_command(char **args, int block, int input, char *input_filename, int output, char *output_filename, int append, char *append_filename);
+int do_command(char **args, int block,
+			   int input, char *input_filename,
+	           int output, char *output_filename,
+			   int append, char *append_filename, int shellSTDIN);
 int redirect_input(char **args, char **input_filename);			   
 int append_output(char **args, char **append_filename);
 int redirect_output(char **args, char **output_filename);
@@ -49,11 +52,13 @@ int main() {
   char *output_filename;
   char *input_filename;
   char *append_filename;
+  int shellSTDIN = STDIN_FILENO;
+
   
-	// Set up the signal handler
-  signal(SIGQUIT, SIG_IGN);
-  signal(SIGTTIN, SIG_IGN);
-  signal(SIGTTOU, SIG_IGN);
+  // Set up the signal handler
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGTTIN, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);	
 	signal(SIGCHLD, sig_handler);
 
   // Loop forever
@@ -123,7 +128,7 @@ int main() {
     do_command(args, block,
 	       input, input_filename,
 	       output, output_filename,
-         append, append_filename);
+         append, append_filename, shellSTDIN);
   }
 }
 
@@ -164,7 +169,7 @@ int internal_command(char **args) {
 int do_command(char **args, int block,
 	       int input, char *input_filename,
 	       int output, char *output_filename,
-         int append, char *append_filename) {
+         int append, char *append_filename, int shellSTDIN) {
 
   int result;
   pid_t child_id;
@@ -208,7 +213,9 @@ int do_command(char **args, int block,
   // Wait for the child process to complete, if necessary
   if(block) {
 	printf("Waiting for child, pid = %d\n", child_id);
+	tcsetpgrp(shellSTDIN, child_id);	//give child control
 	result = waitpid(child_id, &status, 0);
+	tcsetpgrp(shellSTDIN, getpid());	//give control back to shell
   }
 }
 
