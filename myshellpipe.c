@@ -84,14 +84,28 @@
 		input = redirect_input(args, &input_filename);
 
 		//Check if there is a pipe. If there is, find out how many
-		isPipes = pipesExist(args);
+		isPipes = false;
 		int numberOfPipes;
-		if(isPipes){
-			numberOfPipes = pipeCount(args);
-			printf("Pipes: %i\n" , numberOfPipes);
+		
+		for(i = 1; args[i] != NULL; i++) {
+			if(args[i][0] == '|' && args[i+1][0] != '|') {	//Makes sure to not count a '||' as a pipe
+				isPipes = true;
+			}else{
+				continue;
+			}
 		}
 		
+		if(isPipes){
+			numberOfPipes = pipeCount(args);
+			//printf("Pipes: %i\n" , numberOfPipes);
+			
+		}
 		
+		int fd[2 * numberOfPipes];
+		
+/* 		for(i = 0; i < numberOfPipes; i++) {
+			pipe(fd + i*2);
+		} */
 		
 		switch(input) {
 		case -1:
@@ -177,16 +191,7 @@
 	//iterates through args array, same way that the "ampersand" function does. 
 	//Checks for first instance of '|' and it indicates that pipes are present.
 	
-	bool pipesExist(char **args){	
-		for(i = 1; args[i] != NULL; i++) {
-			if(args[i][0] == '|' && args[i+1][0] != '|') {	//Makes sure to not count a '||' as a pipe
-				return true;
-			}else{
-				continue;
-			}
-		}
-		return false;
-	}
+
 	
 	//iterates through args array, same way that the "ampersand" and "pipesExist" functions do. 
 	//Checks for every instance of the character '|' and adds to a total.
@@ -212,11 +217,11 @@
 	  int result;
 	  pid_t child_id;
 	  int status;
-
+		/* 
 		for(i = 0; args[i] != NULL; i++) {
 			printf(args[i]);
-		}
-
+		} */
+	  
 
 	  // Fork the child process
 	  child_id = fork();
