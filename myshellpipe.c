@@ -87,6 +87,8 @@
 		isPipes = false;
 		int numberOfPipes;
 		
+		//iterates through args array, same way that the "ampersand" function does. 
+		//Checks for first instance of '|' and it indicates that pipes are present.
 		for(i = 1; args[i] != NULL; i++) {
 			if(args[i][0] == '|' && args[i+1][0] != '|') {	//Makes sure to not count a '||' as a pipe
 				isPipes = true;
@@ -103,9 +105,9 @@
 		
 		int fd[2 * numberOfPipes];
 		
-/* 		for(i = 0; i < numberOfPipes; i++) {
+ 		for(i = 0; i < numberOfPipes; i++) {
 			pipe(fd + i*2);
-		} */
+		} 
 		
 		switch(input) {
 		case -1:
@@ -188,11 +190,7 @@
 	  return 0;
 	}
 
-	//iterates through args array, same way that the "ampersand" function does. 
-	//Checks for first instance of '|' and it indicates that pipes are present.
-	
 
-	
 	//iterates through args array, same way that the "ampersand" and "pipesExist" functions do. 
 	//Checks for every instance of the character '|' and adds to a total.
 	int pipeCount(char **args){
@@ -217,11 +215,7 @@
 	  int result;
 	  pid_t child_id;
 	  int status;
-		/* 
-		for(i = 0; args[i] != NULL; i++) {
-			printf(args[i]);
-		} */
-	  
+	 
 
 	  // Fork the child process
 	  child_id = fork();
